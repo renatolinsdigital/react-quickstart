@@ -629,3 +629,303 @@ The result will be:
 
 ![Button Component](print/button.png)
 
+---
+
+### 8. Local State and the `useState` hook
+
+In React, **local/component state** refers to data that is specific to a component and controls how that component behaves or appears. This state is managed within the component itself and can be changed over time in response to user interactions, API responses, or other events. React provides the `useState` hook to manage this local state in functional components. The `useState` hook is used to define and update local state within a component. It takes an initial state as an argument and returns an array with two elements:
+
+1. **State variable**: The current value of the state.
+2. **State setter function**: A function that updates the state.
+
+Sintax:
+
+```js
+const [state, setState] = useState(initialState);
+```
+
+- `state`: The current value of the state.
+- `setState`: The function to update the state.
+- `initialState`: The value that the state should have initially (can be any data type, such as a number, string, array, or object).
+
+**Example 1: Basic Usage**
+
+In this example, we create a counter that increments every time the button is clicked.
+
+```jsx
+import { useState } from 'react';
+
+function Counter() {
+  // Declare a state variable 'count' initialized to 0
+  const [count, setCount] = useState(0);
+
+  // Function to increment the count
+  const increment = () => {
+    setCount(count + 1); // Update the state by adding 1 to the current count
+  };
+
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={increment}>Increment</button>
+    </div>
+  );
+}
+
+export default Counter;
+```
+
+- **`useState(0)`**: Initializes the `count` state variable with the value `0`.
+- **`setCount(count + 1)`**: Updates the `count` state when the button is clicked, triggering a re-render of the component with the new state value.
+
+**Example 2: Using State with Other Data Types (String)**
+
+You can also use `useState` to manage other types of data, such as strings.
+
+```jsx
+import { useState } from 'react';
+
+function Greeting() {
+  const [name, setName] = useState('John');
+
+  const changeName = () => {
+    setName('Jane'); // Update state with a new name
+  };
+
+  return (
+    <div>
+      <p>Hello, {name}!</p>
+      <button onClick={changeName}>Change Name</button>
+    </div>
+  );
+}
+
+export default Greeting;
+```
+
+In this case:
+- **`useState('John')`** initializes the `name` state with the string `"John"`.
+- **`setName('Jane')`** updates the `name` state when the button is clicked, causing the component to re-render with the new name.
+
+**Example 3: Using State with Objects**
+
+React state can hold complex data types, such as objects. When dealing with objects, we need to spread the previous state to avoid overwriting existing properties.
+
+```jsx
+import { useState } from 'react';
+
+function UserProfile() {
+  const [user, setUser] = useState({ name: 'John', age: 30 });
+
+  const updateAge = () => {
+    setUser(prevState => ({
+      ...prevState, // Spread the previous state
+      age: prevState.age + 1, // Update the age property
+    }));
+  };
+
+  return (
+    <div>
+      <p>Name: {user.name}</p>
+      <p>Age: {user.age}</p>
+      <button onClick={updateAge}>Increase Age</button>
+    </div>
+  );
+}
+
+export default UserProfile;
+```
+
+In this example:
+- **`useState({ name: 'John', age: 30 })`** initializes the state with an object.
+- **`setUser(prevState => ({ ...prevState, age: prevState.age + 1 }))`** updates the `age` property of the `user` object without losing the `name` property.
+
+---
+
+### 9. Side Effects in React
+
+In React, **side effects** refer to any operations or actions that interact with the outside world, such as fetching data from an API, updating the DOM directly, setting up subscriptions, or timers. These actions are not directly related to the component's render process, but they can affect the component's behavior. React provides the `useEffect` hook to handle side effects efficiently.
+
+The `useEffect` hook runs after the component renders and can be used to trigger things like data fetching, subscriptions, or directly manipulating the DOM. It accepts two arguments: a function that contains the side effect logic and an optional dependency array.
+
+```jsx
+import { useEffect, useState } from 'react';
+
+function ExampleComponent() {
+  const [data, setData] = useState(null);
+
+  // Side effect to fetch data
+  useEffect(() => {
+    fetch('https://api.example.com/data')
+      .then(response => response.json())
+      .then(result => setData(result))
+      .catch(error => console.log('Error fetching data', error));
+  }, []); // Empty array means the effect runs only once after the initial render
+
+  return <div>{data ? data : 'Loading...'}</div>;
+}
+```
+
+**Dependency Arrays and Controlling Re-renders**
+
+The **dependency array** controls when the effect should run. If the array is empty (`[]`), the effect will only run once when the component mounts. If we pass specific state or props in the dependency array, the effect will only run when those values change.
+
+So we can have situations like this:
+
+```jsx
+useEffect(() => {
+  console.log('Effect ran on mount');
+}, []); // This will only run the effect once, when the component first renders.
+```
+
+Or like this:
+
+```jsx
+useEffect(() => {
+  console.log('Effect ran because count or name changed:', count, name);
+}, [count, name]); // Runs when either 'count' or 'name' changes
+```
+
+If we include multiple dependencies in the array, the effect will run whenever any of the values in the array change.
+
+**Fetching data with async/await**
+
+Fetching data is one of the most common side effects in React. The `useEffect` hook is ideal for triggering an API call when a component mounts, and we can use the `async/await` syntax for handling asynchronous operations more cleanly. Here’s an example closer to what a real-world React application might do:
+
+```jsx
+import { useState, useEffect } from 'react';
+
+function FetchDataExample() {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('https://api.example.com/items');
+        const result = await response.json();
+        setData(result);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []); // Empty dependency array means it runs once on mount
+
+  return (
+    <div>
+      {loading ? <p>Loading...</p> : <ul>{data.map(item => <li key={item.id}>{item.name}</li>)}</ul>}
+    </div>
+  );
+}
+```
+
+In this example, `useEffect` calls the `fetchData` function when the component mounts. The `loading` state helps to display a loading message while the data is being fetched.
+
+---
+
+### 10. Understanding Lifecycle in React
+
+In React, understanding the **lifecycle** of components is crucial as it defines how and when code is executed during the component's existence. The component lifecycle differs between **class components** and **functional components** due to syntax, performance optimizations, and features like hooks. The main React's **lifecycle states** are:
+
+- **Mounting**: In **class components**, `componentDidMount` runs after the first render. In **functional components**, use `useEffect` with `[]`.  
+- **Updating**: Triggered by state/prop changes. Class components use `componentDidUpdate`, while functional components use `useEffect` with dependencies.  
+- **Unmounting**: Class components use `componentWillUnmount`, while functional components rely on a cleanup function in `useEffect`.  
+
+NOTE: Deprecated methods like `componentWillMount` and `componentWillUpdate` should be avoided.
+
+Within an application, our implementations could be as such:
+
+**1. Class components**
+
+With class components, we use named lifecycle methods for the specific stage we want to capture:
+
+```jsx
+import React, { Component } from "react";
+
+class Example extends Component {
+  componentDidMount() {
+    console.log("Component mounted: Perform side effects here!");
+  }
+
+  componentDidUpdate() {
+    console.log("Component updated: Respond to prop or state changes!");
+  }
+
+  componentWillUnmount() {
+    console.log("Component will unmount: Cleanup here!");
+  }
+
+  render() {
+    return <div>Hello, Class Component!</div>;
+  }
+}
+```
+
+**2. Functional components**
+
+Functional components can achieve the same behavior as class components using the `useEffect` hook. The lifecycle methods in class components map to specific usages of `useEffect`:
+
+   - `componentDidMount` → **useEffect** with an empty dependency array.  
+   - `componentDidUpdate` → **useEffect** with dependencies specified.  
+   - `componentWillUnmount` → **Cleanup function** inside `useEffect`.
+
+When discussing the lifecycle of functional components, it's important to also consider the **cleanup function**. In React, a cleanup function is an optional yet essential feature within the `useEffect` hook. React calls this function before the component unmounts or when the dependencies of the effect change, preventing memory leaks and ensuring proper resource management. Cleanup is useful for canceling timers, aborting API requests, or unsubscribing from event listeners. Without it, lingering side effects can lead to unintended behavior. React executes the cleanup function before re-running the effect or removing the component from the DOM, maintaining optimal performance and stability. Practical Example:  
+  
+```jsx
+   import React, { useState, useEffect } from "react";
+
+   function TimerComponent() {
+     const [seconds, setSeconds] = useState(0);
+
+     useEffect(() => {
+       const timer = setInterval(() => {
+         setSeconds((prev) => prev + 1);
+       }, 1000);
+
+       // Cleanup function: clear the interval when unmounting
+       return () => {
+         clearInterval(timer);
+         console.log("Timer cleaned up");
+       };
+     }, []); // Runs only on mount
+
+     return <div>Seconds passed: {seconds}</div>;
+   }
+```
+
+In this case, we can encapsulate the concept of the lifecycle within functional components like this:
+
+```jsx
+useEffect(() => {
+  // Runs once on mount
+}, []); // empty dependency array
+
+useEffect(() => {
+  // Runs on mount + whenever `dependency` changes
+}, [dependency]); // specify a single dependency
+
+useEffect(() => {
+  // Runs on mount + when `dep1` OR `dep2` change
+}, [dep1, dep2]); // multiple dependencies
+
+useEffect(() => {
+  // Runs on every render (mount and update)
+}); // no dependency array
+
+useEffect(() => {
+  // Runs on mount, when `dependency` changes, and cleanup runs on unmount
+  return () => {
+    // Cleanup logic here
+  };
+}, [dependency]); // cleanup tied to dependency changes or unmount
+```
+
+
+
+
+
+
+
