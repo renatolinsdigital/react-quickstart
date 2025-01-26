@@ -1767,9 +1767,158 @@ Key Points in the example:
 
 Custom hooks are a great way to encapsulate and reuse business logic in a React application, making components cleaner and more maintainable.
 
+
 ---
 
-### 17. Higher-Order Components (HOCs)
+### 17. Compound Components
+
+Compound components in React are a design pattern that allows components to work seamlessly together by sharing state and behavior. The parent component defines the structure, while the child components handle specific behavior and presentation. This approach promotes reusability, as components can be easily composed, and provides flexibility, allowing customization without altering the underlying logic. The result is a modular, scalable architecture ideal for building adaptable and maintainable UI elements. To better illustrate, let’s consider a practical example where we implement the tabs component:
+
+**File Structure**
+
+```plaintext
+src/
+├── components/
+│   ├── Tabs/
+│   │   ├── Tabs.jsx
+│   │   ├── TabList.jsx
+│   │   ├── Tab.jsx
+│   │   ├── TabPanel.jsx
+│   │   ├── TabsContext.js
+├── App.jsx
+```
+
+**Implementation**
+
+#### `TabsContext.js`
+```jsx
+import { createContext } from "react";
+
+// Create Context for Tabs
+const TabsContext = createContext();
+
+export default TabsContext;
+```
+
+#### `Tabs.jsx`
+```jsx
+import React, { useState } from "react";
+import TabsContext from "./TabsContext";
+
+// Parent Component: Tabs
+const Tabs = ({ children, defaultIndex = 0 }) => {
+  const [activeIndex, setActiveIndex] = useState(defaultIndex);
+
+  return (
+    <TabsContext.Provider value={{ activeIndex, setActiveIndex }}>
+      <div className="tabs">{children}</div>
+    </TabsContext.Provider>
+  );
+};
+
+export default Tabs;
+```
+
+#### `TabList.jsx`
+```jsx
+import React from "react";
+
+// Child Component: TabList
+const TabList = ({ children }) => {
+  return <div className="tab-list">{children}</div>;
+};
+
+export default TabList;
+```
+
+#### `Tab.jsx`
+```jsx
+import React, { useContext } from "react";
+import TabsContext from "./TabsContext";
+
+// Child Component: Tab
+const Tab = ({ children, index }) => {
+  const { activeIndex, setActiveIndex } = useContext(TabsContext);
+
+  const isActive = activeIndex === index;
+
+  return (
+    <button
+      className={`tab ${isActive ? "active" : ""}`}
+      onClick={() => setActiveIndex(index)}
+    >
+      {children}
+    </button>
+  );
+};
+
+export default Tab;
+```
+
+#### `TabPanel.jsx`
+```jsx
+import React, { useContext } from "react";
+import TabsContext from "./TabsContext";
+
+// Child Component: TabPanel
+const TabPanel = ({ children, index }) => {
+  const { activeIndex } = useContext(TabsContext);
+
+  return activeIndex === index ? (
+    <div className="tab-panel">{children}</div>
+  ) : null;
+};
+
+export default TabPanel;
+```
+
+#### `App.jsx`
+```jsx
+import React from "react";
+import Tabs from "./components/Tabs/Tabs";
+import TabList from "./components/Tabs/TabList";
+import Tab from "./components/Tabs/Tab";
+import TabPanel from "./components/Tabs/TabPanel";
+
+const App = () => {
+  return (
+    <Tabs defaultIndex={0}>
+      <TabList>
+        <Tab index={0}>Tab 1</Tab>
+        <Tab index={1}>Tab 2</Tab>
+        <Tab index={2}>Tab 3</Tab>
+      </TabList>
+      <TabPanel index={0}>Content for Tab 1</TabPanel>
+      <TabPanel index={1}>Content for Tab 2</TabPanel>
+      <TabPanel index={2}>Content for Tab 3</TabPanel>
+    </Tabs>
+  );
+};
+
+export default App;
+```
+
+Code breakdown:
+
+1. **`Tabs` Component**:  
+   - A container that manages the `activeIndex` state and provides it via `TabsContext`.  
+   - Accepts a `defaultIndex` prop to set the initial active tab.  
+
+2. **`TabList` Component**:  
+   - Acts as a container for `Tab` components, visually grouping them.  
+
+3. **`Tab` Component**:  
+   - Receives an `index` prop to identify its position.  
+   - Highlights as active when its index matches `activeIndex` and updates the state on click.  
+
+4. **`TabPanel` Component**:  
+   - Displays content only if its `index` matches the `activeIndex`.  
+
+Compound components provide a modular, reusable, and declarative way to build a tabbed interface. React Context ensures smooth communication between components, eliminating prop drilling and keeping the structure clean. This pattern can also be applied to UI elements like accordions, carousels, or multi-step forms, making your applications easier to maintain, test, and scale.  
+
+---
+
+### 18. Higher-Order Components (HOCs)
 
 In React, a **Higher-Order Component (HOC)** is an advanced technique for reusing component logic. An HOC is a function that takes a component as an argument and returns a new component with enhanced behavior or additional props. HOCs are not a feature of React itself but a pattern that leverages React's compositional nature. They are commonly used to:
 
