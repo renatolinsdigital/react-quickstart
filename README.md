@@ -1767,12 +1767,13 @@ Key Points in the example:
 
 Custom hooks are a great way to encapsulate and reuse business logic in a React application, making components cleaner and more maintainable.
 
-
 ---
 
 ### 17. Compound Components
 
-Compound components in React are a design pattern that allows components to work seamlessly together by sharing state and behavior. The parent component defines the structure, while the child components handle specific behavior and presentation. This approach promotes reusability, as components can be easily composed, and provides flexibility, allowing customization without altering the underlying logic. The result is a modular, scalable architecture ideal for building adaptable and maintainable UI elements. To better illustrate, let’s consider a practical example where we implement the tabs component:
+Compound components in React are a design pattern that allows components to work seamlessly together by sharing state and behavior. The parent component defines the structure, while the child components handle specific behavior and presentation. This approach promotes reusability, as components can be easily composed, and provides flexibility, allowing customization without altering the underlying logic. The result is a modular, scalable architecture ideal for building adaptable and maintainable UI elements. 
+
+To better illustrate, let’s consider a practical example where we implement the tabs component:
 
 **File Structure**
 
@@ -1794,8 +1795,10 @@ src/
 ```jsx
 import { createContext } from "react";
 
-// Create Context for Tabs
-const TabsContext = createContext();
+const TabsContext = createContext({
+  activeIndex: 0,
+  setActiveIndex: () => {}
+});
 
 export default TabsContext;
 ```
@@ -1805,7 +1808,6 @@ export default TabsContext;
 import React, { useState } from "react";
 import TabsContext from "./TabsContext";
 
-// Parent Component: Tabs
 const Tabs = ({ children, defaultIndex = 0 }) => {
   const [activeIndex, setActiveIndex] = useState(defaultIndex);
 
@@ -1823,7 +1825,6 @@ export default Tabs;
 ```jsx
 import React from "react";
 
-// Child Component: TabList
 const TabList = ({ children }) => {
   return <div className="tab-list">{children}</div>;
 };
@@ -1836,16 +1837,15 @@ export default TabList;
 import React, { useContext } from "react";
 import TabsContext from "./TabsContext";
 
-// Child Component: Tab
 const Tab = ({ children, index }) => {
   const { activeIndex, setActiveIndex } = useContext(TabsContext);
 
-  const isActive = activeIndex === index;
+  const onActivate = () => setActiveIndex(index)
 
   return (
     <button
-      className={`tab ${isActive ? "active" : ""}`}
-      onClick={() => setActiveIndex(index)}
+      className={`tab ${activeIndex === index ? "active" : ""}`}
+      onClick={onActivate}
     >
       {children}
     </button>
@@ -1860,7 +1860,6 @@ export default Tab;
 import React, { useContext } from "react";
 import TabsContext from "./TabsContext";
 
-// Child Component: TabPanel
 const TabPanel = ({ children, index }) => {
   const { activeIndex } = useContext(TabsContext);
 
@@ -1875,9 +1874,9 @@ export default TabPanel;
 #### `App.jsx`
 ```jsx
 import React from "react";
+import Tab from "./components/Tabs/Tab";
 import Tabs from "./components/Tabs/Tabs";
 import TabList from "./components/Tabs/TabList";
-import Tab from "./components/Tabs/Tab";
 import TabPanel from "./components/Tabs/TabPanel";
 
 const App = () => {
@@ -1898,23 +1897,32 @@ const App = () => {
 export default App;
 ```
 
-Code breakdown:
+**Code Breakdown:**
 
 1. **`Tabs` Component**:  
    - A container that manages the `activeIndex` state and provides it via `TabsContext`.  
    - Accepts a `defaultIndex` prop to set the initial active tab.  
+   - Uses `TabsContext.Provider` to pass down the `activeIndex` and `setActiveIndex` functions to child components.
 
 2. **`TabList` Component**:  
    - Acts as a container for `Tab` components, visually grouping them.  
+   - A simple presentational component that doesn’t manage any state, just wraps the `Tab` components.
 
 3. **`Tab` Component**:  
-   - Receives an `index` prop to identify its position.  
-   - Highlights as active when its index matches `activeIndex` and updates the state on click.  
+   - Receives an `index` prop to identify its position within the tab list.  
+   - Highlights as active when its `index` matches the `activeIndex` from `TabsContext` and updates the state on click.  
+   - **Improvements**: Added `role="tab"` and `aria-selected` for better accessibility, allowing screen readers to announce the active tab.
 
 4. **`TabPanel` Component**:  
    - Displays content only if its `index` matches the `activeIndex`.  
+   - Renders its content conditionally based on the `activeIndex` provided by `TabsContext`.  
+   - **Improvements**: Added `role="tabpanel"` and `aria-labelledby` to link the panel with its respective `Tab`, improving accessibility.
 
-Compound components provide a modular, reusable, and declarative way to build a tabbed interface. React Context ensures smooth communication between components, eliminating prop drilling and keeping the structure clean. This pattern can also be applied to UI elements like accordions, carousels, or multi-step forms, making your applications easier to maintain, test, and scale.  
+5. **`TabsContext`**:  
+   - A React Context that holds the active tab index (`activeIndex`) and provides a setter function (`setActiveIndex`) to update it.  
+   - Shared across all `Tab`, `TabList`, and `TabPanel` components, avoiding prop drilling.
+
+Compound components provide a modular, reusable, and declarative way to build a tabbed interface. React Context ensures smooth communication between components, eliminating prop drilling and keeping the structure clean. Not all compound components need `createContext`. In this case, `TabsContext` manages the active tab state across `Tab`, `TabList`, and `TabPanel`, but if the state is local or shared between a few components, context isn't necessary. This pattern can also be applied to UI elements like accordions, carousels, or multi-step forms, making your applications easier to maintain, test, and scale.  
 
 ---
 
