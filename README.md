@@ -742,7 +742,7 @@ In this example:
 
 ---
 
-### 9. Side Effects
+### 9. Side Effects and the `useEffect` hook
 
 In React, **side effects** refer to any operations or actions that interact with the outside world, such as fetching data from an API, updating the DOM directly, setting up subscriptions, or timers. These actions are not directly related to the component's render process, but they can affect the component's behavior. React provides the `useEffect` hook to handle side effects efficiently.
 
@@ -1045,7 +1045,434 @@ Benefits of Lifting State:
 
 ---
 
-### 12. Components: Composition, Presentation and Best Practices
+### 12. State Management with Context API and Related Hooks  
+
+The **Context API** is a powerful feature in React for managing and sharing state across components without prop drilling. When combined with hooks like `useContext` and `useReducer`, it enables a clean and scalable approach to state management. Below is a practical example, structured with proper file separation to maintain a clear separation of concerns.
+
+**File Structure for Separation**  
+
+```plaintext
+src/
+├── components/
+│   └── ThemeToggler.jsx
+├── context/
+│   ├── ThemeContext.jsx
+│   └── themeReducer.js
+├── App.jsx
+└── index.js
+```
+
+**Step 1: Create the Reducer**  
+
+The reducer defines how the state should change based on actions.  
+
+**File: `context/themeReducer.js`**  
+
+```javascript
+export const themeReducer = (state, action) => {
+  switch (action.type) {
+    case "SET_LIGHT":
+      return { ...state, theme: "light" };
+    case "SET_DARK":
+      return { ...state, theme: "dark" };
+    default:
+      throw new Error(`Unhandled action type: ${action.type}`);
+  }
+};
+```
+
+**Step 2: Create the Context and Provider**  
+
+In this example, the `ThemeContext` will provide state and the dispatch function to all components in the tree.  
+
+**File: `context/ThemeContext.jsx`**  
+
+```javascript
+import React, { createContext, useReducer } from "react";
+import { themeReducer } from "./themeReducer";
+
+const ThemeContext = createContext();
+
+const ThemeProvider = ({ children }) => {
+  const [state, dispatch] = useReducer(themeReducer, { theme: "light" });
+
+  return (
+    <ThemeContext.Provider value={{ state, dispatch }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+};
+
+export { ThemeContext, ThemeProvider };
+```
+
+**Step 3: Create a Component to Consume the Context**  
+
+This component uses `useContext` to access and interact with the global theme state.  
+
+**File: `components/ThemeToggler.jsx`**  
+
+```javascript
+import React, { useContext } from "react";
+import { ThemeContext } from "../context/ThemeContext";
+
+const ThemeToggler = () => {
+  const { state, dispatch } = useContext(ThemeContext);
+
+  return (
+    <div>
+      <p>Current Theme: {state.theme}</p>
+      <button onClick={() => dispatch({ type: "SET_LIGHT" })}>Light Mode</button>
+      <button onClick={() => dispatch({ type: "SET_DARK" })}>Dark Mode</button>
+    </div>
+  );
+};
+
+export default ThemeToggler;
+```
+
+**Step 4: Integrate the Provider in the App**  
+
+Wrap the `App` component with the `ThemeProvider` so that the context is accessible throughout the application.  
+
+**File: `App.jsx`**  
+
+```javascript
+import React from "react";
+import ThemeToggler from "./components/ThemeToggler";
+
+const App = () => (
+  <div>
+    <h1>Theme Manager</h1>
+    <ThemeToggler />
+  </div>
+);
+
+export default App;
+```
+
+**Step 5: Wrap the Application with the Provider**  
+
+Ensure that the `ThemeProvider` is at the root of your component tree.  
+
+**File: `index.js`**  
+
+```javascript
+import React from "react";
+import ReactDOM from "react-dom";
+import App from "./App";
+import { ThemeProvider } from "./context/ThemeContext";
+
+ReactDOM.render(
+  <ThemeProvider>
+    <App />
+  </ThemeProvider>,
+  document.getElementById("root")
+);
+```
+
+**Key Concepts**  
+
+1. **`createContext` (ThemeContext):**  
+   - Creates the global context.  
+   - Used in the provider to expose state and actions.  
+   
+2. **`useReducer` (themeReducer):**  
+   - Manages state updates in a predictable and centralized manner.  
+   - Enables easy addition of new actions without modifying individual components.  
+
+3. **`useContext` (ThemeToggler):**  
+   - Consumes context to access global state and dispatch actions.  
+
+**Benefits of Separation using Context API**  
+
+- **Scalability:** Each responsibility is isolated in its own file, making the codebase easier to scale.  
+- **Maintainability:** Reducers, providers, and components can be updated or replaced independently.  
+- **Reusability:** Other contexts can follow this same structure, keeping the project organized.  
+
+---
+
+### 13. Direct DOM Manipulations with the `useRef` Hook  
+
+React's declarative approach minimizes the need for direct DOM manipulations. However, certain **edge cases** require direct access to DOM elements. Examples include focusing an input field, measuring an element's dimensions, or working with third-party libraries that rely on DOM elements. The `useRef` hook provides a safe and controlled way to handle these situations.  
+
+**What is `useRef`?**
+
+`useRef` is a React hook that creates a mutable object with a `.current` property. This object persists across renders without causing re-renders when updated. It is particularly useful in scenarios where React's declarative model cannot fully handle the requirements.
+
+**Characteristics of `useRef`**  
+
+1. **DOM References**: Use `useRef` to directly interact with DOM elements through the `.current` property.  
+2. **Persistent Across Renders**: Values in a `useRef` object do not reset between renders, unlike local variables.  
+3. **No Trigger for Re-Renders**: Updates to `.current` do not cause the component to re-render.  
+
+Below, we will check some edge case examples where `useRef` can be used.  
+
+**Example 1: Managing Input Focus**  
+
+A common edge case for `useRef` is managing focus, such as automatically focusing an input field when a page loads or when triggered by a user action.  
+
+```jsx
+import React, { useRef } from "react";
+
+const FocusInput = () => {
+  const inputRef = useRef(null);
+
+  const handleFocus = () => {
+    inputRef.current.focus(); // Directly focuses the input element
+  };
+
+  return (
+    <div>
+      <input ref={inputRef} type="text" placeholder="Click the button to focus me" />
+      <button onClick={handleFocus}>Focus Input</button>
+    </div>
+  );
+};
+
+export default FocusInput;
+```
+
+**Why is this an edge case:** This situation arises only when you need to manage focus programmatically, something that React doesn’t handle natively in its declarative model.  
+
+**Example 2: Measuring an Element's Dimensions**  
+
+Sometimes, you need to measure an element's size or position dynamically. For instance, you might want to adjust a layout based on the width of a container.  
+
+```jsx
+import React, { useRef, useState } from "react";
+
+const MeasureDiv = () => {
+  const divRef = useRef(null);
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+
+  const measureDiv = () => {
+    if (divRef.current) {
+      const { offsetWidth, offsetHeight } = divRef.current;
+      setDimensions({ width: offsetWidth, height: offsetHeight });
+    }
+  };
+
+  return (
+    <div>
+      <div
+        ref={divRef}
+        style={{ width: "200px", height: "100px", backgroundColor: "lightgray" }}
+      >
+        Measure me!
+      </div>
+      <button onClick={measureDiv}>Get Dimensions</button>
+      <p>Width: {dimensions.width}px</p>
+      <p>Height: {dimensions.height}px</p>
+    </div>
+  );
+};
+
+export default MeasureDiv;
+```
+
+**Why is this an edge case:** This is necessary only when the layout depends on runtime values like element dimensions, which cannot be predicted or declared beforehand.
+
+**Example 3: Integration with Third-Party Libraries**  
+
+Many third-party libraries, such as D3 or Chart.js, expect a direct reference to a DOM element to render content. `useRef` is ideal for this use case.  
+
+```jsx
+import React, { useRef, useEffect } from "react";
+
+const Chart = () => {
+  const chartRef = useRef(null);
+
+  useEffect(() => {
+    // Example: Use a third-party library to render a chart inside the div
+    const ctx = chartRef.current.getContext("2d");
+    // Assume we have a library method to render a chart
+    ChartLibrary.render(ctx, { data: [10, 20, 30] });
+  }, []);
+
+  return <canvas ref={chartRef} width={400} height={200}></canvas>;
+};
+
+export default Chart;
+```
+
+**Why is this an edge case:** React doesn’t natively support third-party DOM libraries, so `useRef` bridges the gap when external code needs direct DOM access.
+
+**When to Avoid `useRef`**
+
+While `useRef` is powerful, overusing it can lead to brittle code that undermines React’s declarative model. Prefer React state, props, and effects for most logic and only use `useRef` for:  
+
+1. **Focusing or scrolling elements dynamically.**  
+2. **Measuring element dimensions or positions at runtime.**  
+3. **Storing mutable values (e.g., timers, external library instances).**
+
+By understanding when and how to use `useRef`, we can handle edge cases effectively while maintaining a clean and predictable code.
+
+---
+
+### 14. Optimization Hooks: `useMemo` and `useCallback`
+
+In React, performance optimization is crucial for keeping your app responsive, especially with large datasets or complex components. The `useMemo` and `useCallback` hooks help **memoize values and functions**, ensuring computations and re-creations only happen when needed.
+
+React components re-render when their state or props change, which can lead to two issues: 1) **Expensive calculations** running on every render, and 2) **Unnecessary re-creations** of functions or values. `useMemo` optimizes by memoizing expensive calculations, while `useCallback` memoizes functions to avoid recreating them unnecessarily. 
+
+**Key Differences Between `useMemo` and `useCallback`**
+
+| Feature         | `useMemo`                                   | `useCallback`                             |
+|-----------------|---------------------------------------------|-------------------------------------------|
+| Purpose         | Memoizes the **result of a function**       | Memoizes the **function itself**          |
+| Returns         | A **value** or a **component**              | A **function**                            |
+| Use Case        | Avoid re-computing expensive calculations   | Avoid re-creating functions on re-renders |
+
+Let’s explore optimization concepts and their related hooks:
+
+**1)`useMemo`: Memoizing Expensive Calculations and Components**
+
+Syntax:
+
+```jsx
+const memoizedValue = useMemo(() => computeExpensiveValue(a, b), [a, b]);
+```
+
+- **First Argument**: A function that returns the value to be memoized.
+- **Second Argument**: An array of dependencies that trigger recalculation when changed.
+
+**Example 1: Memoizing Expensive Calculations**
+
+```jsx
+import React, { useMemo, useState } from "react";
+
+const ExpensiveCalculation = ({ num }) => {
+  const calculateFactorial = (n) => {
+    console.log("Calculating factorial...");
+    if (n <= 0) return 1;
+    return n * calculateFactorial(n - 1);
+  };
+
+  const factorial = useMemo(() => calculateFactorial(num), [num]);
+
+  return <div>Factorial of {num}: {factorial}</div>;
+};
+
+const App = () => {
+  const [number, setNumber] = useState(5);
+  const [counter, setCounter] = useState(0);
+
+  return (
+    <div>
+      <ExpensiveCalculation num={number} />
+      <button onClick={() => setNumber((prev) => prev + 1)}>Increase Number</button>
+      <button onClick={() => setCounter((prev) => prev + 1)}>Increase Counter</button>
+      <p>Counter: {counter}</p>
+    </div>
+  );
+};
+
+export default App;
+```
+
+**Why use `useMemo` here?**
+- Without `useMemo`, the factorial calculation would run on **every render**, even if `num` hasn't changed.
+- With `useMemo`, it only recalculates the factorial when `num` changes, improving performance by avoiding unnecessary computations.
+
+**Example 2: Memoizing Entire Components**
+
+`useMemo` can also be used to memoize entire components, preventing unnecessary re-renders when their props haven't changed.
+
+```jsx
+import React, { useMemo, useState } from "react";
+
+const ExpensiveComponent = ({ data }) => {
+  console.log("ExpensiveComponent re-rendered");
+  return <div>{data}</div>;
+};
+
+const App = () => {
+  const [count, setCount] = useState(0);
+  const data = "Some data that doesn't change often";
+
+  const memoizedComponent = useMemo(() => <ExpensiveComponent data={data} />, [data]);
+
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={() => setCount((prev) => prev + 1)}>Increase Count</button>
+      {memoizedComponent}
+    </div>
+  );
+};
+
+export default App;
+```
+
+In this case, `ExpensiveComponent` will only re-render if its `data` prop changes. If `data` stays the same, React will reuse the memoized component, improving performance by avoiding unnecessary re-renders.
+
+**2) `useCallback`: Memoizing Function Definitions**
+
+Syntax:
+
+```jsx
+const memoizedCallback = useCallback(() => { doSomething(a, b); }, [a, b]);
+```
+
+- **First Argument**: The function to be memoized.
+- **Second Argument**: An array of dependencies that trigger recreation when changed.
+
+**Example: Preventing Unnecessary Child Re-Renders**
+
+```jsx
+import React, { useState, useCallback } from "react";
+
+const ChildComponent = React.memo(({ onClick }) => {
+  console.log("Child re-rendered");
+  return <button onClick={onClick}>Click Me</button>;
+});
+
+const App = () => {
+  const [count, setCount] = useState(0);
+
+  const handleClick = useCallback(() => {
+    console.log("Button clicked");
+  }, []); // Function will not be recreated unless dependencies change.
+
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={() => setCount((prev) => prev + 1)}>Increase Count</button>
+      <ChildComponent onClick={handleClick} />
+    </div>
+  );
+};
+
+export default App;
+```
+
+**Why use `useCallback` here?**
+
+- Without `useCallback`, the `handleClick` function would be recreated on every render, causing `ChildComponent` to re-render unnecessarily.
+- By using `useCallback`, the `handleClick` function is memoized, and the child component won't re-render unless its `onClick` prop changes.
+
+**3) When to use** 
+
+When to Use `useMemo`:
+
+- **Expensive Calculations**: Prevent recalculating heavy values like filtering, sorting, or processing large datasets.
+- **Memoizing Components**: For components that receive props that change infrequently, memoizing the component prevents unnecessary re-renders.
+
+When to Use `useCallback`:
+
+- **Child Component Optimization**: Avoid unnecessary re-renders of memoized child components by ensuring the same function reference is passed.
+- **Event Handlers**: Memoize event handlers to maintain stable function references, especially when they are passed down as props.
+
+Important Notes:
+
+- **Use Sparingly**: Both `useMemo` and `useCallback` add complexity. Overuse can lead to less readable code without significant performance improvements.
+- **Measure First**: Don't optimize prematurely. Use the React DevTools to identify performance bottlenecks before applying these hooks.
+- **Dependencies**: Always include all dependencies in the dependency array. Missing dependencies can lead to bugs or stale values.
+
+---
+
+### 15. Components: Composition, Presentation and Best Practices
 
 React development is all about creating modular, reusable, and maintainable components. By following React's philosophy of **composition over inheritance**, developers can design flexible and scalable applications.
 
@@ -1258,7 +1685,91 @@ This structure promotes separation of concerns, making the codebase easier to un
 
 ---
 
-### 13. Higher-Order Components (HOCs)
+### 16. Custom Hooks
+
+Custom hooks let us extract and reuse logic across multiple components, making the code more modular and easier to maintain. A custom hook is just a JavaScript function that can use other hooks (like `useState`, `useEffect`, etc.) and helps separate **business logic** from **presentation** logic, resulting in cleaner and more reusable code base.
+
+Why to Use Custom Hooks?
+
+- **Separation of Concerns**: Custom hooks move complex logic out of components, keeping them focused on rendering and making the component cleaner and easier to read.
+- **Reusability**: Custom hooks can be used across multiple components, reducing code duplication and making the codebase more maintainable.
+- **Maintainability**: Encapsulating business logic in custom hooks makes it easier to update, debug, or test independently from the components.
+- **Testability**: Since custom hooks isolate logic, they’re easier to test independently, improving the overall testability of the application.
+
+Creating a custom hook is straightforward. It's just a function that may use other hooks and returns values or functions that components can use.
+
+**Example: Custom Hook for Fetching Data**
+
+```jsx
+import { useState, useEffect } from 'react';
+
+// Custom hook to fetch data
+function useFetch(url) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(url);
+        const result = await response.json();
+        setData(result);
+      } catch (error) {
+        setError(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [url]);
+
+  return { data, loading, error };
+}
+
+export default useFetch;
+```
+
+In this example:
+
+- **`useFetch`** is a custom hook that handles the business logic for fetching data from an API.
+- It contains logic for managing state (`loading`, `data`, `error`) and using `useEffect` for side-effects (the data fetch).
+- The component using this hook doesn’t need to worry about the logic; it just uses the values returned by the hook.
+
+Usage of the Custom Hook:
+
+```jsx
+import React from 'react';
+import useFetch from './useFetch';
+
+function App() {
+  const { data, loading, error } = useFetch('https://api.example.com/data');
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error.message}</p>;
+
+  return (
+    <div>
+      <h1>Fetched Data</h1>
+      <pre>{JSON.stringify(data, null, 2)}</pre>
+    </div>
+  );
+}
+
+export default App;
+```
+
+Key Points in the example:
+
+1. **Business Logic Separation**: The **fetching logic** is separated into the `useFetch` custom hook, making the `App` component clean and focused only on rendering.
+2. **Reusability**: You can use the `useFetch` hook in multiple components that need to fetch data, promoting code reuse and reducing duplication.
+
+Custom hooks are a great way to encapsulate and reuse business logic in a React application, making components cleaner and more maintainable.
+
+---
+
+### 17. Higher-Order Components (HOCs)
 
 In React, a **Higher-Order Component (HOC)** is an advanced technique for reusing component logic. An HOC is a function that takes a component as an argument and returns a new component with enhanced behavior or additional props. HOCs are not a feature of React itself but a pattern that leverages React's compositional nature. They are commonly used to:
 
