@@ -78,13 +78,13 @@ React is a JavaScript framework designed to solve common problems in building us
 **1. Data Types**
 
 ```javascript
-let num = 42;          // Number
-let str = "Hello";     // String
-let bool = true;       // Boolean
-let arr = [1, 2, 3];   // Array
-let obj = { key: "value" }; // Object
-let nothing = null;    // Null
-let undef;             // Undefined
+let age = 42;          // Number
+let name = "John";     // String
+let isAllowed = true;       // Boolean
+let items = [1, 2, 3];   // Array
+let someData = { key: "value" }; // Object
+let someValue = null;    // Null
+let myVar;             // Undefined
 ```
 
 **2. Arrow Functions**
@@ -273,9 +273,15 @@ cd my-react-app
 npm install
 ```
 
-You'll be prompted to select features. You can simply choose **React** and **JavaScript**.
+For a more direct and unique command, you can simply use:
 
-__NOTE:__ While TypeScript can enhance projects (and is highly recommended), this guide will focus on React without TypeScript for simplicity.
+```bash
+npx create vite@latest my-react-app --template react && cd my-react-app && npm install
+```
+
+You'll be prompted to select features. If you are just starting to use React, you can simply choose **React** and **JavaScript**.
+
+__NOTE:__ While TypeScript is highly recommended for many benefits, this guide will initially focus on React with JavaScript. Later in this tutorial, we will consider TypeScript as well.
 
 3. **Start the Development Server**  
 
@@ -1685,7 +1691,510 @@ This structure promotes separation of concerns, making the codebase easier to un
 
 ---
 
-### 16. Custom Hooks
+### 16. React + Typescript
+
+????????????????????????????????
+
+### 17. Functional vs. Class Components
+
+????????????????????????????????
+
+Ps. definir a funcao por fora pra evitar reenders
+
+---
+
+### 18. Fetching Data in React (ATUALIZAR COM TYPESCRIPT)
+
+Fetching data is essential in React applications, and you can achieve this with the native `fetch` API or third-party libraries like Axios. Below, we'll cover how to fetch data, manage loading states, handle errors, optimize configurations, and use `useCallback` for performance.
+
+**1. Fetching Data Using `fetch`**
+
+The native `fetch` API is a lightweight way to make HTTP requests but requires manual handling of JSON parsing and errors. Example:
+
+```jsx
+import React, { useState, useEffect } from "react";
+
+function UserList() {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch("https://jsonplaceholder.typicode.com/users");
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+        setUsers(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error}</p>;
+
+  return (
+    <ul>
+      {users.map((user) => (
+        <li key={user.id}>{user.name}</li>
+      ))}
+    </ul>
+  );
+}
+
+export default UserList;
+```
+
+**2. Fetching Data Using Axios**
+
+Axios simplifies HTTP requests with built-in JSON parsing, better error handling, and configuration options.
+
+**Basic Example: Fetching Data with Axios**
+
+```jsx
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+
+function UserList() {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get("https://jsonplaceholder.typicode.com/users");
+        setUsers(response.data); // Axios automatically parses JSON
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error}</p>;
+
+  return (
+    <ul>
+      {users.map((user) => (
+        <li key={user.id}>{user.name}</li>
+      ))}
+    </ul>
+  );
+}
+
+export default UserList;
+```
+
+**3. Using `useCallback` with Axios**
+
+In some scenarios, you may want to memoize the fetch function using `useCallback`. This ensures the function reference is stable, preventing unnecessary re-renders or re-executions when passed as a dependency in `useEffect`.
+
+**Example: Optimized Fetching with `useCallback`**
+
+```jsx
+import React, { useState, useEffect, useCallback } from "react";
+import axios from "axios";
+
+function UserList() {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Memoized fetch function
+  const fetchUsers = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axios.get("https://jsonplaceholder.typicode.com/users");
+      setUsers(response.data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []); // Dependencies can be added if needed (e.g., based on props or state)
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]); // Dependency ensures it won't re-run unnecessarily
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error}</p>;
+
+  return (
+    <ul>
+      {users.map((user) => (
+        <li key={user.id}>{user.name}</li>
+      ))}
+    </ul>
+  );
+}
+
+export default UserList;
+```
+
+**4. Configuring Axios for Reuse**
+
+For better scalability, create a custom Axios instance with default configurations like a base URL, headers, and interceptors. Example:
+
+```jsx
+import axios from "axios";
+
+// Create an Axios instance
+const apiClient = axios.create({
+  baseURL: "https://jsonplaceholder.typicode.com",
+  timeout: 10000, // 10-second timeout
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// Request interceptor
+apiClient.interceptors.request.use(
+  (config) => {
+    console.log("Request sent:", config);
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Response interceptor
+apiClient.interceptors.response.use(
+  (response) => {
+    console.log("Response received:", response);
+    return response;
+  },
+  (error) => Promise.reject(error)
+);
+
+export default apiClient;
+```
+
+**Using the Configured Axios Instance**
+
+```jsx
+import React, { useState, useEffect, useCallback } from "react";
+import apiClient from "./apiClient";
+
+function PostList() {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const fetchPosts = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await apiClient.get("/posts");
+      setPosts(response.data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchPosts();
+  }, [fetchPosts]);
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error}</p>;
+
+  return (
+    <ul>
+      {posts.map((post) => (
+        <li key={post.id}>{post.title}</li>
+      ))}
+    </ul>
+  );
+}
+
+export default PostList;
+```
+
+**Key Takeaways**
+
+- Configuring Axios simplifies repetitive setup for HTTP requests.
+- `useCallback` optimizes performance by memoizing functions, ensuring stable dependencies for `useEffect`.
+- Using `useCallback` is not mandatory but enhances clarity and performance in complex applications with frequent re-renders.
+
+**Comparison: Fetch vs. Axios**
+
+| Feature                         | `fetch`                     | Axios                           |
+|---------------------------------|-----------------------------|---------------------------------|
+| **Built-in or Third-Party**     | Built-in (browser API)      | Third-party library            |
+| **Ease of Use**                 | Requires more boilerplate   | Cleaner and more concise       |
+| **Automatic JSON Parsing**      | No                          | Yes                            |
+| **Error Handling**              | Manual with `response.ok`   | Automatic                      |
+| **Timeouts**                    | Requires manual setup       | Built-in support               |
+| **Request/Response Interceptors** | No                         | Yes                            |
+| **Browser Compatibility**       | Widely supported            | Requires a library             |
+
+
+**When to Use Fetch vs. Axios**
+
+- Use **`fetch`** for lightweight applications or when you want to avoid additional dependencies.
+- Use **Axios** for larger applications requiring:
+  - Simplified syntax.
+  - Advanced configurations.
+  - Features like interceptors or automatic JSON handling.
+
+---
+
+### 19. Handling Forms Natively
+
+
+   - Controlled components vs. Uncontrolled components
+   - Form validation and submission
+????????????????????????????????
+
+---
+
+
+### 20. Handling Forms with React Hook Form
+
+
+Handling forms using https://react-hook-form.com + benefits of using these types of libraries
+????????????????????????????????
+
+---
+
+### 21. Routing
+
+- Introduction to React Router
+   - Setting up routes
+   - Navigating between pages
+    - Route parameters (dynamic routing)
+    - Nested routes
+  - protected routes
+
+  ?????
+
+---
+
+### 22. Managing Complex Requests and Race Conditions (ATUALIZAR COM TYPESCRIPT)
+
+**1. Combining Multiple Requests**
+
+When your app requires data from multiple APIs to build a single object or screen, combining these requests efficiently is critical. JavaScript’s `Promise.all` is a simple and reliable way to wait for multiple requests to resolve.
+
+**Example: Combining Requests with `Promise.all`**
+
+```jsx
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+
+function Dashboard() {
+  const [data, setData] = useState({});
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const [usersResponse, postsResponse] = await Promise.all([
+          axios.get("https://jsonplaceholder.typicode.com/users"),
+          axios.get("https://jsonplaceholder.typicode.com/posts"),
+        ]);
+
+        // Combine the responses into a single object
+        setData({
+          users: usersResponse.data,
+          posts: postsResponse.data,
+        });
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error}</p>;
+
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      <h2>Users</h2>
+      <ul>
+        {data.users.map((user) => (
+          <li key={user.id}>{user.name}</li>
+        ))}
+      </ul>
+      <h2>Posts</h2>
+      <ul>
+        {data.posts.map((post) => (
+          <li key={post.id}>{post.title}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default Dashboard;
+```
+
+**Key Points:**
+
+- Use `Promise.all` when you need to wait for all requests to resolve.
+- If one request fails, the entire `Promise.all` will reject. We can manage partial data by wrapping each call in `try/catch` or using `Promise.allSettled`.
+
+**2. Handling Race Conditions**
+
+Race condition problems occur when multiple asynchronous requests update the same state or depend on each other, leading to inconsistent results. These can be managed by carefully controlling which request's result gets applied. Example:
+
+```jsx
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+
+function SearchResults({ query }) {
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const controller = new AbortController(); // AbortController to cancel ongoing requests
+    const fetchResults = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const response = await axios.get(
+          `https://jsonplaceholder.typicode.com/posts?q=${query}`,
+          { signal: controller.signal } // Pass the signal to Axios
+        );
+        setResults(response.data);
+      } catch (err) {
+        if (axios.isCancel(err)) {
+          console.log("Request canceled:", err.message);
+        } else {
+          setError(err.message);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchResults();
+
+    // Cleanup: Cancel the request if the component unmounts or query changes
+    return () => controller.abort();
+  }, [query]);
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error}</p>;
+
+  return (
+    <ul>
+      {results.map((result) => (
+        <li key={result.id}>{result.title}</li>
+      ))}
+    </ul>
+  );
+}
+
+export default SearchResults;
+```
+
+**Key Points:**
+
+- Use `AbortController` to cancel stale requests when new ones are triggered (e.g., when a query changes).
+- This avoids updating the state with outdated or irrelevant responses.
+
+**3. Incrementally Building Screens**
+
+When building screens with multiple sections that rely on independent API calls, it's often beneficial to render parts of the UI as the data arrives.
+
+**Example: Incremental Rendering**
+
+```jsx
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+
+function Profile() {
+  const [user, setUser] = useState(null);
+  const [posts, setPosts] = useState([]);
+  const [loadingUser, setLoadingUser] = useState(true);
+  const [loadingPosts, setLoadingPosts] = useState(true);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      setLoadingUser(true);
+      try {
+        const response = await axios.get("https://jsonplaceholder.typicode.com/users/1");
+        setUser(response.data);
+      } finally {
+        setLoadingUser(false);
+      }
+    };
+
+    const fetchPosts = async () => {
+      setLoadingPosts(true);
+      try {
+        const response = await axios.get("https://jsonplaceholder.typicode.com/posts?userId=1");
+        setPosts(response.data);
+      } finally {
+        setLoadingPosts(false);
+      }
+    };
+
+    fetchUser();
+    fetchPosts();
+  }, []);
+
+  return (
+    <div>
+      <h1>Profile</h1>
+
+      {loadingUser ? <p>Loading user...</p> : <p>{user.name}</p>}
+
+      <h2>Posts</h2>
+      {loadingPosts ? (
+        <p>Loading posts...</p>
+      ) : (
+        <ul>
+          {posts.map((post) => (
+            <li key={post.id}>{post.title}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+export default Profile;
+```
+
+**Key Points:**
+
+- Render each section of the UI as its data becomes available.
+- Maintain separate loading states for different requests.
+
+---
+
+### 23. Custom Hooks (ATUALIZAR COM TYPESCRIPT)
 
 Custom hooks let us extract and reuse logic across multiple components, making the code more modular and easier to maintain. A custom hook is just a JavaScript function that can use other hooks (like `useState`, `useEffect`, etc.) and helps separate **business logic** from **presentation** logic, resulting in cleaner and more reusable code base.
 
@@ -1769,7 +2278,7 @@ Custom hooks are a great way to encapsulate and reuse business logic in a React 
 
 ---
 
-### 17. Compound Components
+### 24. Compound Components (ATUALIZAR COM TYPESCRIPT)
 
 Compound components in React are a design pattern that allows components to work seamlessly together by sharing state and behavior. The parent component defines the structure, while the child components handle specific behavior and presentation. This approach promotes reusability, as components can be easily composed, and provides flexibility, allowing customization without altering the underlying logic. The result is a modular, scalable architecture ideal for building adaptable and maintainable UI elements. 
 
@@ -1926,7 +2435,7 @@ Compound components provide a modular, reusable, and declarative way to build a 
 
 ---
 
-### 18. Higher-Order Components (HOCs)
+### 25. Higher-Order Components (HOCs) (ATUALIZAR COM TYPESCRIPT)
 
 In React, a **Higher-Order Component (HOC)** is an advanced technique for reusing component logic. An HOC is a function that takes a component as an argument and returns a new component with enhanced behavior or additional props. HOCs are not a feature of React itself but a pattern that leverages React's compositional nature. They are commonly used to:
 
@@ -2085,6 +2594,77 @@ Here, the `withDataFetching` HOC retrieves data from an API and passes it as a p
 
 - **Can Be Overused**: Modern alternatives like React **Hooks** or the **Context API** can sometimes replace HOCs.
 - **Static Methods Are Not Copied**: When wrapping a component, static methods (e.g., `WrappedComponent.someStaticMethod`) are not transferred to the enhanced component. Use libraries like `hoist-non-react-statics` to copy them.
+
+---
+
+### 26. Render props pattern
+
+?????????????????
+
+---
+
+### 27. Using SWR
+
+?????????????????
+
+---
+
+### 27. Managing flow of data 
+
+COLOCAR MEU FLUXO JA CRIADO AQUI 
+?????????????????
+
+---
+
+### 28. Consuming GraphQL Data
+
+?????????????????
+
+---
+
+### 29. Testing components
+
+    - Introduction to testing
+    - Jest and React Testing Library
+    - Writing unit tests for components
+    - Mocking and stubbing dependencies
+    - Snapshot testing
+
+---
+
+### 30. Headless components: (SHADCN)
+
+?????????????
+
+---
+
+### 31. Performance & Optimizations: 
+
+ - Virtual DOM and reconciliation
+ - Lazy loading with `React.lazy` and `Suspense`
+ - Code splitting
+- profilling pra saber se sua aplicação apresenta problemas ocultos que podem impactar a performance
+
+---
+
+### 31. Authentication and Authorization (USANDO JWT + interceptors)
+
+??????????????
+
+---
+
+### 32. Security Considerations
+
+Noções básicas de segurança
+Protegendo rotas
+Segurança com JWT
+Proteção contra ataques comuns 
+
+---
+
+### BONUS: General Best Practices for Professionals
+
+naming conventions, SEPARAR de arquivos (config, hooks, components, styles, assets, etc.), separar componentes de dominio de componentes de negocio, priorizar imutabilidade e fluxo unico de dados, evitar arrow functions no event handler pra nao causa rerender, evitar misturas com outras bibliotecas de manipulação de UI (por mais que funcione, fica confuso e dificil de dar manutenção), crie testes unitarios sempre que possivel (pra proteger o funcionamento de componentes), faça debugging com profilling pra saber se sua aplicação apresenta problemas ocultos que podem impactar a performance, defina um bom fluxo de dados (saiba de onde a informação vem, onde é transformada, onde é exibida, onde é submetida pra atualização, etc., crie fluxos visuais se preciso), separe seus componentes em componentes compartilháveis e componentes de dominio(assim voce pode inclusive transformar os componentes compartilhaveis em uma futura biublioteca pessoal)
 
 
 
