@@ -524,62 +524,9 @@ function Button() {
 
 **Setting Up Tailwind in a React Project with Vite:**
 
-To get started with Tailwind in your React project using Vite, follow these steps:
+To set up Tailwind CSS in your React project using Vite, follow the official guide provided by Tailwind CSS: [Using Tailwind CSS with PostCSS](https://tailwindcss.com/docs/installation/using-postcss). This guide provides step-by-step instructions to ensure a seamless integration of Tailwind CSS into your project.
 
-1. **Install Tailwind via npm**:
-   
-```bash
-npm install -D tailwindcss postcss autoprefixer
-npx tailwindcss init
-```
-
-This installs the necessary dependencies and creates a default configuration file for Tailwind (`tailwind.config.js`).
-
-2. **Set up PostCSS**
-
-Create a `postcss.config.js` file in your project root that looks like this:
-
-```javascript
-export default {
-  plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
-  },
-}
-```
-
-__Note__: Vite uses PostCSS to process your CSS. Tailwind's as plugin will look for @tailwind directives in your CSS and generates the necessary utility classes. Autoprefixer automatically adds vendor-specific prefixes for better browser compatibility. Vite handles this by applying these plugins during both development and build stages, efficiently processing and bundling the resulting CSS into your final app.
-
-3. **Set up Tailwind in your CSS entry point file (`src/index.css`)**:
-   
-```css
-/* src/index.css */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-```
-
-These `@tailwind` directives pull in the base styles, components, and utility classes that are provided by Tailwind.
-
-4. **Configure `tailwind.config.js`**:
-   
-```js
-// tailwind.config.js
-export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,jsx,ts,tsx}",
-  ],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
-}
-```
-
-This configuration ensures that Tailwind processes all your JSX, JavaScript, TypeScript, and HTML files for classes used in your components.
-
-5. **Using Tailwind in Your Components**:
+**Using Tailwind in Your Components**:
 
 Let’s walk through creating a button component with Tailwind. To keep things organized, we’ll start by structuring the project into separate folders. Specifically, we’ll create a folder for our components and then add a file for the button component.
 
