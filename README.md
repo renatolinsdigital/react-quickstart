@@ -1,5 +1,7 @@
 # React quickstart - Essential notes by Renato Lins  
 
+![Repository Banner](images/learn-react.png)
+
 React was initially created by Jordan Walke, a software engineer at Facebook (now Meta), and released as an open-source project in 2013. React's purpose is to enable efficient and dynamic user interface (UI) development for web applications by leveraging a component-based architecture and a virtual DOM. With its declarative syntax and unidirectional data flow, React has become one of the most popular JavaScript libraries for building fast, scalable, and maintainable front-end applications. Since its release, React has evolved to power modern web development, being widely adopted by developers and major companies worldwide. In October 2025, Meta announced that React would move to the React Foundation, an independent foundation hosted by the Linux Foundation.
 
 These notes target **React 19** and modern tooling (Vite, TypeScript, and a linter). Short side notes mention tools and APIs that were common in the past, so you can recognize them when you find them in other material.
@@ -915,7 +917,7 @@ export default App;
 
 The result will be:
 
-![Button Component](print/button.png)
+![Button Component](images/button.png)
 
 **Customizing the Theme**
 
