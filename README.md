@@ -2,7 +2,7 @@
 
 React was initially created by Jordan Walke, a software engineer at Facebook (now Meta), and released as an open-source project in 2013. React's purpose is to enable efficient and dynamic user interface (UI) development for web applications by leveraging a component-based architecture and a virtual DOM. With its declarative syntax and unidirectional data flow, React has become one of the most popular JavaScript libraries for building fast, scalable, and maintainable front-end applications. Since its release, React has evolved to power modern web development, being widely adopted by developers and major companies worldwide. In October 2025, Meta announced that React would move to the React Foundation, an independent foundation hosted by the Linux Foundation.
 
-These notes target **React 19** and modern tooling (Vite, TypeScript, and a linter). When an API works differently in older versions, a note points it out.
+These notes target **React 19** and modern tooling (Vite, TypeScript, and a linter). Short side notes mention tools and APIs that were common in the past, so you can recognize them when you find them in other material.
 
 **How to use this guide**
 
@@ -68,7 +68,7 @@ __Unidirectional Data Flow__: React enforces a unidirectional data flow, where d
 **Things to Consider Before Choosing React:**
 
 - **React is a library, not a full framework.** It handles the view layer. Routing, data fetching, forms, and global state come from other libraries, or from a framework built on React (such as Next.js or React Router's framework mode). This flexibility is powerful, but it means you make (and maintain) more architectural decisions.
-- **The ecosystem moves fast.** Recommended patterns have changed over the years (class components → hooks, Create React App → Vite, client-only rendering → Server Components). Prefer the official docs at [react.dev](https://react.dev) and check the date of any tutorial you follow.
+- **The ecosystem moves fast.** Recommended patterns and tools evolve quickly. Prefer the official docs at [react.dev](https://react.dev) and check the date of any tutorial you follow.
 - **Client-side rendering has trade-offs.** A plain React single-page application must download and run JavaScript before content appears, which affects first-load performance and SEO. For content-heavy or SEO-critical sites, consider a framework with server rendering, or a content-first tool such as Astro.
 - **Learn JavaScript first.** Many of the problems beginners face in React are really JavaScript problems (references, closures, async code, immutability). Section 3 covers the essentials.
 - **Know what modern React offers.** React 18 introduced concurrent rendering (`useTransition`, `useDeferredValue`, automatic batching). React 19 added Actions and form hooks (`useActionState`, `useOptimistic`, `useFormStatus`), the `use` API, `ref` as a regular prop, and stable Server Components for frameworks. The **React Compiler** (stable since 2025) can memoize components automatically.
@@ -101,7 +101,7 @@ __Hooks__: Introduced in React 16.8, hooks let function components use state, si
 
 __React Lifecycle__: React components have lifecycle phases: mounting, updating, and unmounting. Class components use lifecycle methods like `componentDidMount`, while functional components achieve the same functionality with hooks like `useEffect`.  
 
-__JSX__: JSX allows developers to write HTML-like syntax within JavaScript. Build tools (Babel, SWC, esbuild) compile it into plain function calls: `jsx()` from `react/jsx-runtime` with the modern JSX transform, or `React.createElement` in older setups.  
+__JSX__: JSX allows developers to write HTML-like syntax within JavaScript. Build tools (Babel, SWC, esbuild) compile it into plain JavaScript function calls (`jsx()` from `react/jsx-runtime`). In the past, JSX was compiled into `React.createElement` calls.  
 
 __React Fiber__: React Fiber, introduced in React 16, optimizes rendering by breaking work into smaller incremental units, enabling better task prioritization and smoother UI updates. It is the foundation of the concurrent rendering features added in React 18.  
 
@@ -113,11 +113,11 @@ __Server Components__: Components that run only on the server (at build time or 
 
 **React Ecosystem:**
 
-__React Router__: A library for managing navigation and routing in React applications, enabling seamless single-page application (SPA) behavior and dynamic content loading. Since v7, it can also work as a full-stack framework ("framework mode", the successor of Remix).  
+__React Router__: A library for managing navigation and routing in React applications, enabling seamless single-page application (SPA) behavior and dynamic content loading. It can also work as a full-stack framework ("framework mode").  
 
 __React Native__: Extends React to mobile development, allowing cross-platform mobile apps for iOS and Android using JavaScript and React’s component-based architecture. **Expo** is the recommended way to start a React Native project.  
 
-__State Management__: Libraries like Redux Toolkit, Zustand, or Jotai complement React’s built-in state to manage complex client state more effectively. (Recoil, often mentioned in older material, has been archived.)  
+__State Management__: Libraries like Redux Toolkit, Zustand, or Jotai complement React’s built-in state to manage complex client state more effectively. (Recoil was another option in the past, so you may see it mentioned in older material.)  
 
 __Server State and Data Fetching__: TanStack Query, SWR, and Apollo Client (for GraphQL) handle caching, deduplication, background refreshes, and loading/error states for data that lives on a server.  
 
@@ -129,7 +129,7 @@ __Component Libraries__: Headless libraries such as Radix UI and React Aria, cop
 
 __Forms__: React Hook Form, often combined with Zod for schema validation (see section 20).  
 
-__Tooling__: Vite is the most common build tool for client-side React apps today, while Webpack is still found in many existing projects. TypeScript, a linter that enforces the Rules of Hooks (ESLint with `eslint-plugin-react-hooks`, or the faster oxlint used by current Vite templates), and Prettier are standard companions, and React DevTools helps you inspect components and profile performance.  
+__Tooling__: Vite is the most common build tool for client-side React apps today (in the past, most projects were built with Webpack). TypeScript, a linter that enforces the Rules of Hooks (ESLint with `eslint-plugin-react-hooks`, or the faster oxlint used by current Vite templates), and Prettier are standard companions, and React DevTools helps you inspect components and profile performance.  
 
 __Testing__: Vitest or Jest together with React Testing Library for unit and integration tests, and Playwright or Cypress for end-to-end tests (see section 30).  
 
@@ -257,7 +257,7 @@ const john = new Person("John", 30);
 john.greet(); // Hello, my name is John.
 ```
 
-Modern React code rarely uses classes, but you will find them in older codebases (see sections 10 and 17).
+In the past, React components were often written as classes, so it's useful to recognize this syntax (see sections 10 and 17).
 
 **7. Modules and Imports**  
 
@@ -376,11 +376,14 @@ A closure is a function that remembers the variables of the scope where it was c
 
 ### 4. Getting Started with React + Vite  
 
-Starting with React can seem overwhelming due to the variety of tools and frameworks available today. However, the key is to begin with a simple setup that focuses on React's core concepts without introducing unnecessary complexity. In the past, developers commonly used **Create React App (CRA)** to bootstrap React projects. CRA was officially deprecated in February 2025 and should not be used for new projects. Frameworks like **Next.js** or **React Router** (framework mode) offer powerful features such as server-side rendering (SSR), static site generation (SSG), and file-based routing, and the official React docs recommend them for production applications. However, they introduce many concepts that are not core to React, and this added complexity can overwhelm beginners who are still learning the basics.  
+Starting with React can seem overwhelming due to the variety of tools and frameworks available today. However, the key is to begin with a simple setup that focuses on React's core concepts without introducing unnecessary complexity. Frameworks like **Next.js** or **React Router** (framework mode) offer powerful features such as server-side rendering (SSR), static site generation (SSG), and file-based routing, and the official React docs recommend them for production applications. However, they introduce many concepts that are not core to React, and this added complexity can overwhelm beginners who are still learning the basics.  
 
 **Vite – An Easy Way to Start**
 
 A modern and lightweight alternative is **Vite**. Vite provides a very fast development experience, optimized build times, and an easy setup process. It’s a great tool to start with React while maintaining flexibility, and it is also widely used in production for client-side applications.  
+
+> [!NOTE]
+> In the past, React projects were commonly created with **Create React App (CRA)**, so you may see it in older tutorials.
 
 **Step-by-Step: Setting Up React with Vite**  
 
@@ -478,7 +481,7 @@ Save the file and see the changes automatically reflected in your browser. This 
 | `npm run dev`     | Starts the development server with HMR                    |
 | `npm run build`   | Creates an optimized production build in the `dist/` folder |
 | `npm run preview` | Serves the production build locally for a final check    |
-| `npm run lint`    | Runs the linter (oxlint in current templates; older projects use ESLint) |
+| `npm run lint`    | Runs the linter (oxlint in the Vite templates; many projects use ESLint) |
 
 ---
 
@@ -487,7 +490,7 @@ Save the file and see the changes automatically reflected in your browser. This 
 Components are the building blocks of a React application. They define the structure, logic, and appearance of the user interface. React allows you to create components using both **class-based** and **functional** approaches. Below, we cover the essentials of components in React, including props, JSX rules, conditional rendering, and event handling. Styling options are covered in sections 6 and 7.
 
 > [!NOTE]
-> Since the "new JSX transform" (React 17), you no longer need `import React from "react"` just to write JSX. Examples in this guide import only what they use, such as `import { useState } from "react"`.
+> Examples in this guide import only what they use, such as `import { useState } from "react"`. In the past, every file that used JSX also needed `import React from "react"`, so you'll see that line in older examples.
 
 **Props (short for properties)**
 
@@ -768,7 +771,7 @@ function App() {
 ```
 
 > [!NOTE]
-> Runtime CSS-in-JS libraries generate styles in the browser while the app runs. This adds overhead, and they can't be used inside React Server Components. In 2025, the styled-components maintainers announced that the library is in maintenance mode. It is still common in existing codebases, but for new projects consider CSS Modules, Tailwind CSS, or zero-runtime alternatives such as vanilla-extract or Panda CSS.
+> Runtime CSS-in-JS libraries generate styles in the browser while the app runs. This adds some overhead, and they can't be used inside React Server Components. Zero-runtime alternatives such as vanilla-extract or Panda CSS keep a similar authoring style but generate the CSS at build time.
 
 **6. JSS (JavaScript Style Sheets)**  
 
@@ -790,7 +793,7 @@ function Button() {
 }
 ```
 
-JSS is largely a legacy option today. MUI, its best-known user, moved away from it in version 5, so you will mostly find it in older codebases.
+JSS was especially popular in the past (MUI used it for styling before version 5).
 
 **Choosing a Styling Approach**
 
@@ -801,7 +804,7 @@ JSS is largely a legacy option today. MUI, its best-known user, moved away from 
 | Sass                      | Global (or modules)           | By toggling classes        | None (build time)  | Teams that like variables, mixins, nesting    |
 | CSS Modules               | Component                     | Classes and CSS variables  | None               | Most apps; a safe default                     |
 | Tailwind CSS              | Utility classes               | Conditional classes        | None               | Fast iteration and consistent design systems  |
-| Styled Components / JSS   | Component                     | Excellent (via props)      | Runtime            | Existing codebases                            |
+| Styled Components / JSS   | Component                     | Excellent (via props)      | Runtime            | Prop-driven styles and theming in JavaScript  |
 
 Considerations:
 
@@ -823,7 +826,7 @@ Considerations:
 
 3. **No CSS Specificity Issues**: Traditional CSS often leads to problems with specificity when styling components. Since Tailwind uses atomic classes with predefined styles, you don’t have to worry about overriding styles or dealing with CSS specificity conflicts.
 
-4. **Highly Customizable**: While Tailwind comes with a default set of utility classes, it is highly customizable. In Tailwind v4, you extend or modify the default theme (colors, spacing, fonts, breakpoints) directly in CSS with the `@theme` directive. Older v3 projects use a `tailwind.config.js` file instead.
+4. **Highly Customizable**: While Tailwind comes with a default set of utility classes, it is highly customizable. You extend or modify the default theme (colors, spacing, fonts, breakpoints) directly in CSS with the `@theme` directive. In the past, Tailwind was configured through a `tailwind.config.js` file.
 
 5. **Responsive Design**: Tailwind comes with built-in responsive design utilities. You can add classes like `sm:`, `md:`, and `lg:` to style elements differently on various screen sizes. This makes it easy to create a fully responsive layout without writing custom media queries.
 
@@ -1348,7 +1351,7 @@ In React, understanding the **lifecycle** of components is crucial as it defines
 - **Updating**: Triggered by state/prop changes. Class components use `componentDidUpdate`, while functional components use `useEffect` with dependencies.  
 - **Unmounting**: Class components use `componentWillUnmount`, while functional components rely on a cleanup function in `useEffect`.  
 
-NOTE: Legacy methods like `componentWillMount`, `componentWillReceiveProps`, and `componentWillUpdate` were renamed with an `UNSAFE_` prefix and should be avoided.
+Side note: in the past, class components also used methods such as `componentWillMount`, `componentWillReceiveProps`, and `componentWillUpdate`, so you may find them in older code.
 
 Within an application, our implementations could be as such:
 
@@ -1446,7 +1449,7 @@ useEffect(() => {
 | `componentDidUpdate`                             | `useEffect(fn, [deps])`                                              |
 | `componentWillUnmount`                           | Cleanup function returned from `useEffect`                           |
 | `shouldComponentUpdate`                          | `memo` (section 14)                                                  |
-| `componentDidCatch` / `getDerivedStateFromError` | No hook equivalent: error boundaries are still classes (section 17)  |
+| `componentDidCatch` / `getDerivedStateFromError` | No hook equivalent: error boundaries are written as classes (section 17) |
 
 **Shifting the Mental Model**
 
@@ -1700,7 +1703,7 @@ export function ThemeProvider({ children }) {
 ```
 
 > [!NOTE]
-> React 19 lets you render the context itself as the provider (`<ThemeContext value={...}>`). In React 18 and earlier, use `<ThemeContext.Provider value={...}>`.
+> The context itself is rendered as the provider (`<ThemeContext value={...}>`). In the past, providers were written as `<ThemeContext.Provider value={...}>`, so you'll see that form in many examples.
 
 Keeping the provider (a component) and the hook (not a component) in separate files also keeps Vite's Fast Refresh working, since it only preserves state for files that export components exclusively.
 
@@ -1766,8 +1769,8 @@ createRoot(document.getElementById("root")).render(
 );
 ```
 
-> [!WARNING]
-> Older tutorials use `ReactDOM.render(...)` from `react-dom`. That API was removed in React 19. Use `createRoot` from `react-dom/client`.
+> [!NOTE]
+> In the past, apps were mounted with `ReactDOM.render(<App />, document.getElementById("root"))`, so you may see that call in older tutorials.
 
 **Key Concepts**  
 
@@ -1947,7 +1950,7 @@ function Stopwatch() {
 
 **Passing Refs to Your Own Components**
 
-In React 19, `ref` is a regular prop for function components:
+`ref` is a regular prop for function components:
 
 ```jsx
 import { useRef } from "react";
@@ -1968,7 +1971,7 @@ function Form() {
 }
 ```
 
-In React 18 and earlier, a function component needs to be wrapped in `forwardRef` to receive a `ref`.
+Side note: in the past, components had to be wrapped in `forwardRef` to receive a `ref`, so you'll see `forwardRef` in many existing components.
 
 **When to Avoid `useRef`**
 
@@ -2416,7 +2419,7 @@ npm create vite@latest my-react-ts-app -- --template react-ts
 ```
 
 - Files containing JSX use the `.tsx` extension, and plain TypeScript files use `.ts`.
-- Strict type checking is on: TypeScript 7 enables `strict` by default, while older setups set `"strict": true` in `tsconfig.app.json`. Keep it on.
+- Strict type checking is on by default. Keep it on. (In the past, it had to be enabled with `"strict": true` in `tsconfig.json`, which you'll still see in many projects.)
 - Vite only removes types; it does **not** type-check while `npm run dev` is running. Your editor shows type errors, and `npm run build` runs `tsc -b` before building, so type errors fail the build.
 
 **Typing Props**
@@ -2615,7 +2618,7 @@ async function getPosts(): Promise<Post[]> {
 
 ### 17. Functional vs. Class Components
 
-React supports two ways of defining components. **Function components with hooks** are the modern standard and are used for all new code. **Class components** still exist in many codebases, and they remain the only way to write an error boundary, so it's worth being able to read both.
+React supports two ways of defining components. **Function components with hooks** are the standard way to write components. **Class components** were the main approach in the past, so you'll find them in many codebases, and they are also the only way to write an error boundary. It's worth being able to read both.
 
 **The Same Component, Both Ways**
 
@@ -2754,7 +2757,7 @@ function Row({ text }: { text: string }) {
 
 **Which One Should You Use?**
 
-Use function components for all new code. Class and function components work together in the same tree, so existing class components can stay as they are and be migrated gradually, when you need to change them anyway.
+Use function components for new code. Class and function components work together in the same tree, so both can coexist in one project.
 
 ---
 
@@ -3409,7 +3412,7 @@ import { z } from "zod";
 const signUpSchema = z
   .object({
     name: z.string().min(2, "Name must have at least 2 characters"),
-    email: z.email("Enter a valid email"), // Zod 4 syntax (Zod 3: z.string().email(...))
+    email: z.email("Enter a valid email"),
     password: z.string().min(8, "Use at least 8 characters"),
     confirmPassword: z.string(),
   })
@@ -3501,13 +3504,13 @@ function SignUpForm() {
 
 - A login form with two fields doesn't need a library. Reach for one when forms grow, repeat across the app, or need complex validation.
 - Validation on the client improves the experience, but **the server must still validate everything**.
-- Alternatives include TanStack Form and Formik (common in older codebases). React 19 form actions (section 19) also cover many simple cases.
+- Alternatives include TanStack Form and Formik. React 19 form actions (section 19) also cover many simple cases.
 
 ---
 
 ### 21. Routing with React Router
 
-A single-page application loads one HTML page and swaps components as the URL changes, without full page reloads. **React Router** is the most widely used library for this. Its current versions (v7 and v8) can be used in three modes: **declarative** (the classic `<Routes>` setup, shown here), **data** (adds loaders and actions), and **framework** (a full-stack framework, the successor of Remix).
+A single-page application loads one HTML page and swaps components as the URL changes, without full page reloads. **React Router** is the most widely used library for this. It can be used in three modes: **declarative** (the `<Routes>` setup, shown here), **data** (adds loaders and actions), and **framework** (a full-stack framework).
 
 **Installation**
 
@@ -3515,7 +3518,10 @@ A single-page application loads one HTML page and swaps components as the URL ch
 npm install react-router
 ```
 
-Everything is imported from `react-router`, except `RouterProvider`, which comes from `react-router/dom` (data mode). The separate `react-router-dom` package used in v6 tutorials was deprecated in v7 and removed in v8. React Router 8 requires React 19.2 or later.
+Everything is imported from `react-router`, except `RouterProvider`, which comes from `react-router/dom` (data mode). The current version requires React 19.2 or later.
+
+> [!NOTE]
+> In the past, web apps imported React Router from a separate `react-router-dom` package, so you'll see that name in older tutorials.
 
 **1. Setting Up Routes**
 
@@ -4591,7 +4597,7 @@ Here, the `withDataFetching` HOC retrieves data from an API and passes it as a p
 - **Prop Name Collisions**: Two HOCs that inject a prop with the same name silently overwrite each other.
 - **Static Methods Are Not Copied**: When wrapping a component, static methods (e.g., `WrappedComponent.someStaticMethod`) are not transferred to the enhanced component. Use libraries like `hoist-non-react-statics` to copy them.
 
-HOCs are still common in existing code and in some libraries, so it's important to recognize them. For new code, the comparison usually looks like this:
+HOCs appear in many codebases and libraries, so it's important to recognize them. When choosing a pattern, the comparison usually looks like this:
 
 | Need                                   | Prefer                                |
 |----------------------------------------|---------------------------------------|
